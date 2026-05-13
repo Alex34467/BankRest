@@ -1,0 +1,456 @@
+openapi: 3.0.3
+info:
+  title: API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080/api
+paths:
+  /auth/sign-in:
+    post:
+      summary: Авторизация пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Пользователь авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /users:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение всех пользователей
+      responses:
+        '200':
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDto'
+    post:
+      security:
+        - bearerAuth: [ ]
+      summary: Сохранение пользователя
+      requestBody:
+        description: Данные пользователя
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          description: Ошибка валидации данных пользователя
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+
+  /users/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение данных пользователя по идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '404':
+          description: Пользователь не найден
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+    delete:
+      security:
+        - bearerAuth: [ ]
+      summary: Удаление пользователя по идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ''
+        '404':
+          description: Пользователь не найден
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+
+  /cards:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение данных всех карт
+      responses:
+        '200':
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDto'
+    post:
+      security:
+        - bearerAuth: [ ]
+      summary: Сохранение карты
+      requestBody:
+        description: Данные карты
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '400':
+          description: Ошибка валидации данных карты
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+
+  /cards/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение данных карты по идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор карты
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '404':
+          description: Карта не найдена
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+    delete:
+      security:
+        - bearerAuth: [ ]
+      summary: Удаление карты по идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор карты
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ''
+        '404':
+          description: Карта не найдена
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error'
+
+  /cards/owner/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение данных карт по идентификатору пользователя
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDto'
+
+  /cards/owner/search:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получение данных карт текущего пользователя
+      parameters:
+        - name: searchNumber
+          in: query
+          required: true
+          description: Строка для поиска карт по номеру
+          schema:
+            type: string
+          example: '1234'
+        - name: page
+          in: query
+          required: true
+          description: Номер страницы для пагинации
+          schema:
+            type: integer
+            minimum: 0
+          example: 1
+        - name: size
+          in: query
+          required: true
+          description: Размер страницы для пагинации
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDto'
+
+  /cards/transfer:
+    post:
+      security:
+        - bearerAuth: [ ]
+      summary: Перевод средств между картами
+      requestBody:
+        description: Данные карт
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoneyTransferRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyTransferResponse'
+
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      description: Запрос на авторизацию
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          nullable: false
+          example: Admin
+        password:
+          type: string
+          description: Пароль
+          nullable: false
+          example: 123456
+
+    AuthResponse:
+      type: object
+      description: Ответ на авторизацию
+      properties:
+        token:
+          type: string
+          description: Токен для авторизации
+          example: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJpZCI6MSwiZW1haWwiOiJhZG1pbkB0ZXN0LmNvbSIsInN1YiI6IkFkbWluIiwiaWF0IjoxNzc4NTY0MDQwLCJleHAiOjE3Nzg3MDgwNDB9.bSgUZBQ0DizP8MRfA-meGOfjBQs1AmZWBz4v1VLaFPs'
+
+    UserDto:
+      type: object
+      description: Данные пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя
+          nullable: true
+          example: 1
+        username:
+          type: string
+          description: Имя пользователя
+          nullable: false
+          example: 'Admin'
+        email:
+          type: string
+          format: email
+          description: Почта пользователя
+          nullable: false
+          example: 'admin@text.com'
+        password:
+          type: string
+          description: Пароль
+          nullable: false
+          example: '123456'
+        role:
+          type: string
+          description: Роль
+          nullable: false
+          enum: [ADMIN, USER]
+          example: 'ADMIN'
+
+    CardDto:
+      type: object
+      description: Данные банковской карты
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор карты
+          nullable: true
+          example: 1
+        number:
+          type: string
+          minLength: 16
+          maxLength: 16
+          pattern: '^[0-9]+$'
+          description: Номер карты
+          nullable: false
+          example: '1234123412341234'
+        ownerId:
+          type: integer
+          format: int64
+          description: Идентификатор владельца карты
+          nullable: false
+          example: 1
+        expirationDate:
+          type: string
+          description: Срок действия карты
+          nullable: false
+          example: 11/26
+        status:
+          type: string
+          description: Статус карть
+          nullable: false
+          enum: [ ACTIVE, BLOCKED, EXPIRED ]
+          example: 'ACTIVE'
+        balance:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Баланс на карте
+          nullable: false
+          example: 100.00
+
+    MoneyTransferRequest:
+      type: object
+      description: Запрос на перевод между картами
+      properties:
+        sourceCardNumber:
+          type: string
+          description: Номер карты, с которой происходит перевод
+          nullable: false
+          example: '1234123412341234'
+        targetCardNumber:
+          type: string
+          description: Номер карты, на которую происходит перевод
+          nullable: false
+          example: '1234123412341234'
+        amount:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Сумма перевода
+          nullable: false
+          example: 100.00
+
+    MoneyTransferResponse:
+      type: object
+      description: Ответ на запрос на перевод средств между картами
+      properties:
+        sourceCardNumber:
+          type: string
+          description: Номер карты, с которой произошел перевод
+          nullable: false
+          example: '1234123412341234'
+        sourceCardBalance:
+          type: number
+          format: decimal
+          description: Баланс карты, с которой произошел перевод
+          nullable: false
+          example: 100.00
+        targetCardNumber:
+          type: string
+          description: Номер карты, на которую происходит перевод
+          nullable: false
+          example: '1234123412341234'
+        targetCardBalance:
+          type: number
+          format: decimal
+          description: Баланс карты, на которую произошел перевод
+          nullable: false
+          example: 100.00
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
