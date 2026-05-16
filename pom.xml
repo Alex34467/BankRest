@@ -9,7 +9,7 @@ pom.xml — файл для управления зависимостями пр
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mycompany.app</groupId>
-    <artifactId>my-app</artifactId>
+    <artifactId>bank_rest</artifactId>
     <version>1</version>
 
     <parent>

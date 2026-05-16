@@ -7,6 +7,8 @@ servers:
 paths:
   /auth/sign-in:
     post:
+      tags:
+        - Авторизация
       summary: Авторизация пользователя
       requestBody:
         content:
@@ -23,6 +25,8 @@ paths:
 
   /users:
     get:
+      tags:
+        - Пользователи
       security:
         - bearerAuth: [ ]
       summary: Получение всех пользователей
@@ -36,6 +40,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserDto'
     post:
+      tags:
+        - Пользователи
       security:
         - bearerAuth: [ ]
       summary: Сохранение пользователя
@@ -63,6 +69,8 @@ paths:
 
   /users/{id}:
     get:
+      tags:
+        - Пользователи
       security:
         - bearerAuth: [ ]
       summary: Получение данных пользователя по идентификатору
@@ -90,6 +98,8 @@ paths:
                 type: string
                 example: 'Error'
     delete:
+      tags:
+        - Пользователи
       security:
         - bearerAuth: [ ]
       summary: Удаление пользователя по идентификатору
@@ -120,6 +130,8 @@ paths:
 
   /cards:
     get:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Получение данных всех карт
@@ -133,6 +145,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/CardDto'
     post:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Сохранение карты
@@ -160,6 +174,8 @@ paths:
 
   /cards/{id}:
     get:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Получение данных карты по идентификатору
@@ -187,6 +203,8 @@ paths:
                 type: string
                 example: 'Error'
     delete:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Удаление карты по идентификатору
@@ -217,6 +235,8 @@ paths:
 
   /cards/owner/{id}:
     get:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Получение данных карт по идентификатору пользователя
@@ -241,6 +261,8 @@ paths:
 
   /cards/owner/search:
     get:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Получение данных карт текущего пользователя
@@ -280,6 +302,8 @@ paths:
 
   /cards/transfer:
     post:
+      tags:
+        - Карты
       security:
         - bearerAuth: [ ]
       summary: Перевод средств между картами
