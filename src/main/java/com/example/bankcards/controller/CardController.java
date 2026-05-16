@@ -1,13 +1,6 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.UserDetailsDto;
-import com.example.bankcards.exception.CardNotFoundException;
-import com.example.bankcards.exception.InsufficientCardBalanceException;
-import com.example.bankcards.exception.InvalidCardExpireDateException;
-import com.example.bankcards.exception.InvalidCardNumberException;
-import com.example.bankcards.exception.InvalidCardOwnerException;
-import com.example.bankcards.exception.InvalidCardStatusException;
-import com.example.bankcards.exception.TransferWithSameCardException;
 import com.example.bankcards.model.CardDto;
 import com.example.bankcards.model.MoneyTransferRequest;
 import com.example.bankcards.model.MoneyTransferResponse;
@@ -15,12 +8,9 @@ import com.example.bankcards.service.CardService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,40 +86,5 @@ public class CardController {
                 cards.getRight().getNumber(),
                 cards.getRight().getBalance()
         );
-    }
-
-    @ExceptionHandler(CardNotFoundException.class)
-    public ResponseEntity<String> handleNotFound() {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Карта не найдена");
-    }
-
-    @ExceptionHandler(InvalidCardOwnerException.class)
-    public ResponseEntity<String> handleInvalidCardOwner() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный владелец карты");
-    }
-
-    @ExceptionHandler(InvalidCardNumberException.class)
-    public ResponseEntity<String> handleInvalidCardNumber() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный номер карты");
-    }
-
-    @ExceptionHandler(InvalidCardStatusException.class)
-    public ResponseEntity<String> handleInvalidCardStatus() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный статус карты");
-    }
-
-    @ExceptionHandler(InvalidCardExpireDateException.class)
-    public ResponseEntity<String> handleInvalidCardExpireDate() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный срок действия карты");
-    }
-
-    @ExceptionHandler(InsufficientCardBalanceException.class)
-    public ResponseEntity<String> handleInsufficientCardBalance() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("На карте недостаточно средств для проведения операции");
-    }
-
-    @ExceptionHandler(TransferWithSameCardException.class)
-    public ResponseEntity<String> handleTransferWithSameCard() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("В переводе должны участвовать разные карты");
     }
 }
