@@ -1,5 +1,7 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.exception.UserNameNotUniqueException;
+import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.security.JwtService;
 import com.example.bankcards.service.UserService;
 import com.example.bankcards.util.TestUtil;
@@ -13,9 +15,11 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +44,11 @@ class UserControllerTest {
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0]").exists())
-                .andExpect(jsonPath("$.[0].id").exists());
+                .andExpect(jsonPath("$.[0].id").isNumber())
+                .andExpect(jsonPath("$.[0].username").isString())
+                .andExpect(jsonPath("$.[0].email").isString())
+                .andExpect(jsonPath("$.[0].password").isString())
+                .andExpect(jsonPath("$.[0].role").isString());
         Mockito.verify(userService, Mockito.times(1)).getAllUsers();
     }
 
@@ -52,6 +60,17 @@ class UserControllerTest {
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists());
+        Mockito.verify(userService, Mockito.times(1)).getById(anyLong());
+    }
+
+    @Test
+    void getUserByIdTest_failure() throws Exception {
+        Mockito.when(userService.getById(anyLong()))
+                .thenThrow(UserNotFoundException.class);
+
+        mockMvc.perform(get("/users/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Пользователь не найден"));
         Mockito.verify(userService, Mockito.times(1)).getById(anyLong());
     }
 
@@ -68,9 +87,32 @@ class UserControllerTest {
     }
 
     @Test
+    void saveUserTest_failure() throws Exception {
+        Mockito.when(userService.saveUser(any()))
+                .thenThrow(UserNameNotUniqueException.class);
+        String json = new ObjectMapper().writeValueAsString(TestUtil.getUserDto());
+
+        mockMvc.perform(post("/users").contentType("application/json").content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Пользователь с таким именем уже существует"));
+        Mockito.verify(userService, Mockito.times(1)).saveUser(any());
+    }
+
+    @Test
     void deleteUserTest_success() throws Exception {
         mockMvc.perform(delete("/users/1"))
                 .andExpect(status().isOk());
+        Mockito.verify(userService, Mockito.times(1)).deleteUser(anyLong());
+    }
+
+    @Test
+    void deleteUserTest_failure() throws Exception {
+        doThrow(UserNotFoundException.class)
+                .when(userService).deleteUser(anyLong());
+
+        mockMvc.perform(delete("/users/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Пользователь не найден"));
         Mockito.verify(userService, Mockito.times(1)).deleteUser(anyLong());
     }
 }

@@ -1,6 +1,10 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.config.WebTestConfig;
+import com.example.bankcards.exception.CardNotFoundException;
+import com.example.bankcards.exception.CardNumberNotUniqueException;
+import com.example.bankcards.exception.InsufficientCardBalanceException;
+import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.security.JwtService;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.UserService;
@@ -19,9 +23,11 @@ import tools.jackson.databind.ObjectMapper;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,7 +55,12 @@ class CardControllerTest {
         mockMvc.perform(get("/cards"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0]").exists())
-                .andExpect(jsonPath("$.[0].id").exists());
+                .andExpect(jsonPath("$.[0].id").isNumber())
+                .andExpect(jsonPath("$.[0].number").isString())
+                .andExpect(jsonPath("$.[0].ownerId").isNumber())
+                .andExpect(jsonPath("$.[0].expirationDate").isString())
+                .andExpect(jsonPath("$.[0].status").isString())
+                .andExpect(jsonPath("$.[0].balance").isNumber());
         Mockito.verify(cardService, Mockito.times(1)).findAllCards();
     }
 
@@ -61,6 +72,17 @@ class CardControllerTest {
         mockMvc.perform(get("/cards/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists());
+        Mockito.verify(cardService, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void findCardByIdTest_failure() throws Exception {
+        Mockito.when(cardService.findById(anyLong()))
+                .thenThrow(CardNotFoundException.class);
+
+        mockMvc.perform(get("/cards/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Карта не найдена"));
         Mockito.verify(cardService, Mockito.times(1)).findById(anyLong());
     }
 
@@ -109,9 +131,32 @@ class CardControllerTest {
     }
 
     @Test
+    void saveCardTest_failure() throws Exception {
+        Mockito.when(cardService.saveCard(any()))
+                .thenThrow(CardNumberNotUniqueException.class);
+        String json = new ObjectMapper().writeValueAsString(TestUtil.getCardDto(1L));
+
+        mockMvc.perform(post("/cards").contentType("application/json").content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Карта с таким номером уже существует"));
+        Mockito.verify(cardService, Mockito.times(1)).saveCard(any());
+    }
+
+    @Test
     void deleteCardTest_success() throws Exception {
         mockMvc.perform(delete("/cards/1"))
                 .andExpect(status().isOk());
+        Mockito.verify(cardService, Mockito.times(1)).deleteCard(anyLong());
+    }
+
+    @Test
+    void deleteCardTest_failure() throws Exception {
+        doThrow(CardNotFoundException.class)
+                .when(cardService).deleteCard(anyLong());
+
+        mockMvc.perform(delete("/cards/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Карта не найдена"));
         Mockito.verify(cardService, Mockito.times(1)).deleteCard(anyLong());
     }
 
@@ -136,6 +181,27 @@ class CardControllerTest {
                 .andExpect(jsonPath("$.sourceCardBalance").isNumber())
                 .andExpect(jsonPath("$.targetCardNumber").isString())
                 .andExpect(jsonPath("$.targetCardBalance").isNumber());
+        Mockito.verify(cardService, Mockito.times(1)).transferMoney(anyLong(), anyString(), anyString(), any());
+    }
+
+    @Test
+    void makeTransferBetweenCardsTest_failure() throws Exception {
+        Mockito.when(jwtService.extractUsername(anyString()))
+                .thenReturn("User");
+        Mockito.when(jwtService.isTokenValid(anyString(), any()))
+                .thenReturn(true);
+        Mockito.when(userService.getUserDetailsService())
+                .thenReturn(username -> TestUtil.getUserDetails());
+        Mockito.when(cardService.transferMoney(anyLong(), anyString(), anyString(), any()))
+                .thenThrow(InsufficientCardBalanceException.class);
+        String json = new ObjectMapper().writeValueAsString(TestUtil.getMoneyTransferRequest("11", "22"));
+
+        mockMvc.perform(post("/cards/transfer")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        .contentType("application/json")
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("На карте недостаточно средств для проведения операции"));
         Mockito.verify(cardService, Mockito.times(1)).transferMoney(anyLong(), anyString(), anyString(), any());
     }
 }

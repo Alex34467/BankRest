@@ -1,6 +1,7 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.exception.CardNotFoundException;
+import com.example.bankcards.exception.CardNumberNotUniqueException;
 import com.example.bankcards.exception.InsufficientCardBalanceException;
 import com.example.bankcards.exception.InvalidCardExpireDateException;
 import com.example.bankcards.exception.InvalidCardNumberException;
@@ -46,6 +47,11 @@ public class BankRestAdvice {
     @ExceptionHandler(InvalidCardNumberException.class)
     public ResponseEntity<String> handleInvalidCardNumber() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Некорректный номер карты");
+    }
+
+    @ExceptionHandler(CardNumberNotUniqueException.class)
+    public ResponseEntity<String> handleCardNumberNotUnique() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Карта с таким номером уже существует");
     }
 
     @ExceptionHandler(InvalidCardStatusException.class)
